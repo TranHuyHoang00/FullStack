@@ -22,6 +22,7 @@
             <td>fistname</td>
             <td>lastname</td>
             <td>address</td>
+            <td>action</td>
         </tr>
         <% for(let i=0; i < dataTable.length; i++) { %>
             <tr>
@@ -36,6 +37,10 @@
                 </td>
                 <td>
                     <%= dataTable[i].address %>
+                </td>
+                <td>
+                    <a type="button">Edit</a>
+                    <a type="button">DELETE</a>
                 </td>
             </tr>
             <% } %>
