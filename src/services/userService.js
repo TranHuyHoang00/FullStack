@@ -10,7 +10,7 @@ let handleUserLogin = (email, password) => {
             if (isExist) { // nếu email tồn tại thì check pass
                 let user = await db.User.findOne({
                     where: { email: email },
-                    attributes: ['email', 'roleId', 'password'], // lay ra gia tri mong muon
+                    attributes: ['email', 'roleId', 'password', 'firstName'], // lay ra gia tri mong muon
                     raw: true,
                 });
                 if (user) {
@@ -59,7 +59,6 @@ let getAllUsers = (userId) => {
     return new Promise(async (resolve, reject) => {
         try {
             let users = '';
-
             if (userId === 'ALL') {
                 users = await db.User.findAll({
                     attributes: {
@@ -67,7 +66,6 @@ let getAllUsers = (userId) => {
                     }
                 })
             }
-
             if (userId && userId !== 'ALL') {
                 users = await db.User.findOne({
                     where: { id: userId },
@@ -89,26 +87,28 @@ let createNewUser = (data) => {
             if (check === true) {
                 resolve({
                     errCode: 1,
-                    message: "email have exist"
+                    errMessage: "email have exist"
+                })
+            } else {
+                let hashPasswordFromBcrypt = await hashUserPassword(data.password);
+                await db.User.create({
+                    email: data.email,
+                    password: hashPasswordFromBcrypt,
+                    firstName: data.firstname,
+                    lastName: data.lastname,
+                    address: data.address,
+                    phonenumber: data.phonenumber,
+                    gender: data.gender === '1' ? true : false,
+                    // image: DataTypes.STRING,
+                    roleId: data.roleId,
+                    // positionId: DataTypes.STRING,
+                })
+                resolve({
+                    errCode: 0,
+                    message: "ok create"
                 })
             }
-            let hashPasswordFromBcrypt = await hashUserPassword(data.password);
-            await db.User.create({
-                email: data.email,
-                password: hashPasswordFromBcrypt,
-                firstName: data.firstname,
-                lastName: data.lastname,
-                address: data.address,
-                phonenumber: data.phonenumber,
-                gender: data.gender === '1' ? true : false,
-                // image: DataTypes.STRING,
-                roleId: data.roleId,
-                // positionId: DataTypes.STRING,
-            })
-            resolve({
-                errCode: 0,
-                message: "ok"
-            })
+
 
         } catch (e) {
             reject(e);
@@ -140,7 +140,7 @@ let deleteUser = (userId) => {
             where: { id: userId }
         });
         resolve({
-            errCode: 1,
+            errCode: 0,
             errMessage: 'delete ok'
         })
     })
@@ -159,6 +159,7 @@ let updateUser = (data) => {
                 raw: false,
             })
             if (user) {
+                user.email = data.email;
                 user.firstName = data.firstName;
                 user.lastName = data.lastName;
                 user.address = data.address;
@@ -178,10 +179,33 @@ let updateUser = (data) => {
         }
     })
 }
+let getAllCodeService = (typeInput) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!typeInput) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'miss '
+                });
+            } else {
+                let res = {};
+                let allcode = await db.Allcode.findAll({
+                    where: { type: typeInput }
+                });
+                res.errCode = 0;
+                res.data = allcode;
+                resolve(res);
+            }
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
 module.exports = {
     handleUserLogin: handleUserLogin,
     getAllUsers: getAllUsers,
     createNewUser: createNewUser,
     deleteUser: deleteUser,
     updateUser: updateUser,
+    getAllCodeService: getAllCodeService,
 }
